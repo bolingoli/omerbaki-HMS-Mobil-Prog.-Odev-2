@@ -1,0 +1,94 @@
+class MainActivity : AppCompatActivity() {
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContentView(R.layout.activity_main)
+
+        supportFragmentManager.beginTransaction().apply {
+            replace(R.id.fragment_container, HomePageFragment())
+            commit()
+        }
+    }
+}
+class HomePageFragment : Fragment() {
+
+    override fun onCreateView(
+        inflater: LayoutInflater, container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View? {
+        return inflater.inflate(R.layout.fragment_home_page, container, false)
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+
+        nextButton.setOnClickListener {
+            requireActivity().supportFragmentManager.beginTransaction().apply {
+                replace(R.id.fragment_container, FirstPageFragment())
+                addToBackStack(null)
+                commit()
+            }
+        }
+    }
+}
+class FirstPageFragment : Fragment() {
+
+    private val todoList = mutableListOf<Item>()
+    private lateinit var todoAdapter: ToDoAdapter
+
+    override fun onCreateView(
+        inflater: LayoutInflater, container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View? {
+        return inflater.inflate(R.layout.fragment_first_page, container, false)
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+
+        todoAdapter = ToDoAdapter(todoList)
+        todoRecyclerView.adapter = todoAdapter
+
+        addButton.setOnClickListener {
+            val title = titleEditText.text.toString().trim()
+            val description = descriptionEditText.text.toString().trim()
+
+            if (title.isNotEmpty() && description.isNotEmpty()) {
+                todoList.add(Item(title, description))
+                todoAdapter.notifyDataSetChanged()
+                titleEditText.text.clear()
+                descriptionEditText.text.clear()
+            } else {
+            }
+        }
+    }
+}
+class ToDoAdapter(private val todoList: MutableList<Item>) :
+    RecyclerView.Adapter<ToDoAdapter.ToDoViewHolder>() {
+
+    inner class ToDoViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView)
+
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ToDoViewHolder {
+        val view = LayoutInflater.from(parent.context).inflate(R.layout.item_todo, parent, false)
+        return ToDoViewHolder(view)
+    }
+
+    override fun onBindViewHolder(holder: ToDoViewHolder, position: Int) {
+        val currentItem = todoList[position]
+        holder.itemView.titleTextView.text = currentItem.title
+        holder.itemView.descriptionTextView.text = currentItem.description
+
+        holder.itemView.checkbox.setOnCheckedChangeListener { _, isChecked ->
+        }
+
+        holder.itemView.deleteButton.setOnClickListener {
+            todoList.removeAt(holder.adapterPosition)
+            notifyDataSetChanged()
+        }
+    }
+
+    override fun getItemCount(): Int {
+        return todoList.size
+    }
+}
+data class Item(val title: String, val description: String)
